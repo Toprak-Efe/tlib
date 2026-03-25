@@ -1,10 +1,8 @@
 #pragma once
 
-#include <cstdlib>
 #include <fcntl.h>
 #include <filesystem>
 #include <stdexcept>
-#include <stdio.h>
 #include <string>
 #include <sys/stat.h>
 #include <sys/file.h>

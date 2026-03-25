@@ -1,8 +1,8 @@
 #pragma once
 
 #include <chrono>
-#include <snippets/concepts/timestamped.hpp>
-#include <snippets/concepts/vector.hpp>
+#include <tlib++/control/concepts/timestamped.hpp>
+#include <tlib++/control/concepts/vector.hpp>
 
 template <typename T>
 concept Holdable = Vector<T> && Timestamped<T>;
