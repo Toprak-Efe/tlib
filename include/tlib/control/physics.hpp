@@ -5,7 +5,7 @@
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/src/Core/Map.h>
 #include <eigen3/Eigen/src/Geometry/Quaternion.h>
-#include <tlib++/control/concepts/timestamped.hpp>
+#include <tlib/control/concepts/timestamped.hpp>
 
 struct WrenchTag {};       // Force (F, t)
 struct TwistTag {};        // Velocity (V, w)

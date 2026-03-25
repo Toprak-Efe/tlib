@@ -3,7 +3,7 @@
 #include <array>
 #include <atomic>
 #include <cstring>
-#include <tlib++/concurrency/cache.hpp>
+#include <tlib/concurrency/cache.hpp>
 #include <unistd.h>
 
 template <class T> class TripleBuffer {
