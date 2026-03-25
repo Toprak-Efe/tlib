@@ -10,6 +10,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/snippets/concepts/arithmetic.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/snippets/concepts/timestamped.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/snippets/concepts/vector.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/snippets/concepts/logpolicy.hpp
     # Dynamics & Control
     ${CMAKE_CURRENT_SOURCE_DIR}/include/snippets/control/nthhold.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/snippets/control/physics.hpp
@@ -32,9 +33,10 @@ target_sources(snippets
     PRIVATE
     ${SOURCES}
 )
-target_link_libraries(snippets PUBLIC
-    Eigen3::Eigen
-)
-target_compile_features(snippets PUBLIC
-    cxx_std_23
-)
+target_link_libraries(snippets PUBLIC Eigen3::Eigen)
+target_compile_features(snippets PUBLIC cxx_std_23)
+
+add_executable(main)
+target_link_libraries(main PRIVATE snippets)
+target_compile_features(main PUBLIC cxx_std_23)
+target_sources(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/source/main.cpp)
