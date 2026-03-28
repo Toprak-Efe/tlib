@@ -3,8 +3,6 @@ project(tlib)
 
 find_package(Eigen3 REQUIRED)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 set(HEADERS
     #commons
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/commons/concepts/logpolicy.hpp
@@ -40,7 +38,4 @@ target_sources(tlib
 target_link_libraries(tlib PUBLIC Eigen3::Eigen)
 target_compile_features(tlib PUBLIC cxx_std_23)
 
-#add_executable(main)
-#target_link_libraries(main PRIVATE tlib)
-#target_compile_features(main PUBLIC cxx_std_23)
-#target_sources(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/source/main.cpp)
+add_subdirectory(tests)

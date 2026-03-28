@@ -1,38 +1,53 @@
 #pragma once
 
-#include <cstddef>
+#include <concepts>
+#include <stdexcept>
 #include <tlib/control/concepts/arithmetic.hpp>
 #include <tlib/control/physics.hpp>
 
-template <typename T> struct Clamper {
-  static_assert(SelfComparable<T>);
+template <typename T>
+  requires SelfArithmetic<T> && std::copy_constructible<T>
+class Clamper {
+public:
   Clamper() = delete;
-  template <T Min, T Max> static T clamp(const T &val) {
-    static_assert(Max >= Min);
-    if (val > Max)
-      return Max;
-    if (val < Min)
-      return Min;
+  Clamper(const T &min, const T &max) : min_{min}, max_{max} {
+    if (min > max) {
+      throw std::invalid_argument{
+          "Minimum clamp value must be smaller or equal to the maximum."};
+    }
+  }
+  T clamp(const T &val) {
+    if (val > max_)
+      return max_;
+    if (val < min_)
+      return min_;
     return val;
   }
+
+private:
+  T min_;
+  T max_;
 }; // struct Clamper
 
-template <typename T> struct Clamper<SpatialVector<T>> {
-  static_assert(SelfComparable<T>);
+template <typename T> class Clamper<SpatialVector<T>> {
+public:
   Clamper() = delete;
-  template <SpatialVector<T> Min, SpatialVector<T> Max>
-  static SpatialVector<T> clamp(const SpatialVector<T> &val) {
-    const auto &min_vec = Min.vec();
-    const auto &max_vec = Max.vec();
+  Clamper(const SpatialVector<T> &min, const SpatialVector<T> &max)
+      : min_{min}, max_{max} {
     for (std::size_t i = 0; i < 6; i++) {
-      static_assert(max_vec.array()[i] >= min_vec.array()[i]);
+      if (min.vec()[i] > max.vec()[i]) {
+        throw std::invalid_argument{"Minimum clamp values must be smaller or "
+                                    "equal to the maximum ones."};
+      }
     }
+  }
 
+  SpatialVector<T> clamp(const SpatialVector<T> &val) {
     SpatialVector<T> out;
     for (std::size_t i = 0; i < 6; i++) {
       const auto s = val.vec().array()[i];
-      const auto max = Max.vec().array()[i];
-      const auto min = Min.vec().array()[i];
+      const auto max = max_.vec().array()[i];
+      const auto min = min_.vec().array()[i];
       double out_v = s;
       if (s > max)
         out_v = max;
@@ -43,4 +58,7 @@ template <typename T> struct Clamper<SpatialVector<T>> {
     return out;
   }
 
+private:
+  SpatialVector<T> min_;
+  SpatialVector<T> max_;
 }; // struct Clamper

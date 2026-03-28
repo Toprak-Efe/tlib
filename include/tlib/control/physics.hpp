@@ -33,6 +33,7 @@ public:
       : timestamp(tsp) {
     data = Eigen::Map<const Vector6>(arr.data());
   }
+  ~SpatialVector() = default;
 
   const Timestamp &stamp() const { return timestamp; }
   Timestamp &stamp() { return timestamp; }
