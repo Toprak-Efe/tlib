@@ -38,4 +38,7 @@ target_sources(tlib
 target_link_libraries(tlib PUBLIC Eigen3::Eigen)
 target_compile_features(tlib PUBLIC cxx_std_23)
 
-add_subdirectory(tests)
+if(DEFINED TESTS_ON)
+    add_subdirectory(tests)
+endif()
+
