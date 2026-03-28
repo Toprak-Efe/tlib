@@ -20,3 +20,13 @@ concept SelfArithmetic = Arithmetic<T, T>;
 template <typename T>
 concept ScalarArithmetic = Arithmetic<T, double>;
 
+template <typename T, typename L>
+concept Comparable = requires(T a, L b) {
+  { a > b } -> std::same_as<bool>;
+  { a < b } -> std::same_as<bool>;
+  { a == b } -> std::same_as<bool>;
+  { a != b } -> std::same_as<bool>;
+};
+
+template <typename T>
+concept SelfComparable = Comparable<T, T>;

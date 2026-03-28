@@ -4,8 +4,8 @@
 #include <filesystem>
 #include <stdexcept>
 #include <string>
-#include <sys/stat.h>
 #include <sys/file.h>
+#include <sys/stat.h>
 #include <sys/unistd.h>
 #include <unistd.h>
 
@@ -29,15 +29,14 @@ class FileLock {
     if (!flock(fd_, LOCK_EX)) {
       throw std::runtime_error(
           std::string("Unable to lock file ") + lockpath.root_path().c_str() +
-          ", hardware already in control. ERRNO: " + std::to_string(errno) + "\n");
+          ", resource already taken. ERRNO: " + std::to_string(errno) +
+          "\n");
     }
 
     return;
   }
   ~FileLock() {
-    if (!flock(fd_, LOCK_UN)) {
-        // not our problem lul
-    }
+    flock(fd_, LOCK_UN);
   }
 
 private:

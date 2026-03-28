@@ -14,10 +14,12 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/concurrency/ringbuffer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/concurrency/triplebuffer.hpp
     #control
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/physics.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/clamping.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/nthhold.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/physics.hpp
     ## concepts
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/concepts/arithmetic.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/concepts/vector.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/concepts/timestamped.hpp
 )
 
