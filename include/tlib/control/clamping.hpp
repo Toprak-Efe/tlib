@@ -16,7 +16,7 @@ public:
           "Minimum clamp value must be smaller or equal to the maximum."};
     }
   }
-  T clamp(const T &val) {
+  T clamp(const T &val) const {
     if (val > max_)
       return max_;
     if (val < min_)
@@ -42,7 +42,7 @@ public:
     }
   }
 
-  SpatialVector<T> clamp(const SpatialVector<T> &val) {
+  SpatialVector<T> clamp(const SpatialVector<T> &val) const {
     SpatialVector<T> out;
     for (std::size_t i = 0; i < 6; i++) {
       const auto s = val.vec().array()[i];

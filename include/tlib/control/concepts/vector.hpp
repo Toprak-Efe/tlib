@@ -4,3 +4,4 @@
 
 template <typename T>
 concept Vector = SelfArithmetic<T> && ScalarArithmetic<T>; 
+

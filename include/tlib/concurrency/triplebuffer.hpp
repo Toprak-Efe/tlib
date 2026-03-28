@@ -10,15 +10,15 @@ template <class T> class TripleBuffer {
 private:
 public:
   TripleBuffer()
-      : m_procuder_state({.index = 0}), m_consumer_state({.index = 2}) {
+      : m_producer_state({.index = 0}), m_consumer_state({.index = 2}) {
     m_shared_state.index.store(1, std::memory_order_relaxed);
     m_shared_state.new_data_available.store(false, std::memory_order_relaxed);
   }
 
   void add(const T &data) {
-    size_t write_idx = m_procuder_state.index;
+    size_t write_idx = m_producer_state.index;
     m_buffers[write_idx].data = data;
-    m_procuder_state.index =
+    m_producer_state.index =
         m_shared_state.index.exchange(write_idx, std::memory_order_acq_rel);
     m_shared_state.new_data_available.store(true, std::memory_order_release);
   }
@@ -38,7 +38,11 @@ public:
   /**
    * @note NOT ATOMIC.
    */
-  void reset() { memset(m_buffers.data(), 0, 3 * sizeof(PaddedSlot)); }
+  void reset() {
+    for (auto &slot : m_buffers) {
+      slot.data = T{};
+    }
+  }
 
 private:
   struct alignas(CACHE_LINE) PaddedSlot {
@@ -53,7 +57,7 @@ private:
 
   struct alignas(CACHE_LINE) {
     size_t index;
-  } m_procuder_state;
+  } m_producer_state;
 
   struct alignas(CACHE_LINE) {
     size_t index;
