@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <eigen3/Eigen/Dense>
@@ -19,17 +20,16 @@ public:
   using Clock = std::chrono::steady_clock;
   using Timepoint = Clock::time_point;
 
-  SpatialVector() : timestamp(Clock::now()) { data.setZero(); };
-  explicit SpatialVector(const Vector6 &vec,
-                         const Timepoint &tsp = Clock::now())
+  SpatialVector() : timestamp() { data.setZero(); };
+  explicit SpatialVector(const Vector6 &vec, const Timepoint &tsp = {})
       : data(vec), timestamp(tsp) {}
   SpatialVector(const Vector3 &linear, const Vector3 &angular,
-                const Timepoint &tsp = Clock::now())
+                const Timepoint &tsp = {})
       : timestamp(tsp) {
     data << linear, angular;
   };
   explicit SpatialVector(const std::array<Scalar, 6> &arr,
-                         const Timepoint &tsp = Clock::now())
+                         const Timepoint &tsp = {})
       : timestamp(tsp) {
     data = Eigen::Map<const Vector6>(arr.data());
   }
@@ -91,6 +91,7 @@ public:
     for (size_t i = 0; i < 6; i++) {
       data[i] /= v.vec()[i];
     }
+    timestamp = std::max(timestamp, v.stamp());
     return *this;
   }
   SpatialVector &operator*=(Scalar s) {
@@ -101,6 +102,7 @@ public:
     for (size_t i = 0; i < 6; i++) {
       data[i] *= v.vec()[i];
     }
+    timestamp = std::max(timestamp, v.stamp());
     return *this;
   }
   SpatialVector &operator+=(Scalar s) {
@@ -109,6 +111,7 @@ public:
   }
   SpatialVector &operator+=(const SpatialVector &v) {
     data += v.vec();
+    timestamp = std::max(timestamp, v.stamp());
     return *this;
   }
   SpatialVector &operator-=(Scalar s) {
@@ -117,6 +120,7 @@ public:
   }
   SpatialVector &operator-=(const SpatialVector &v) {
     data -= v.vec();
+    timestamp = std::max(timestamp, v.stamp());
     return *this;
   }
 

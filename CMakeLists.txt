@@ -4,8 +4,8 @@ project(tlib)
 find_package(Eigen3 REQUIRED)
 
 set(HEADERS
-    #commons
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/commons/concepts/logpolicy.hpp
+    #common
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/common/serialization.hpp
     #concurrency
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/concurrency/cache.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/concurrency/flock.hpp
@@ -15,6 +15,8 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/clamping.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/nthhold.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/physics.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/signal.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/telemetry.hpp
     ## concepts
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/concepts/arithmetic.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/concepts/vector.hpp
@@ -38,7 +40,7 @@ target_sources(tlib
 target_link_libraries(tlib PUBLIC Eigen3::Eigen)
 target_compile_features(tlib PUBLIC cxx_std_23)
 
-if(DEFINED TESTS_ON)
+if(TESTS_ON)
     add_subdirectory(tests)
 endif()
 
