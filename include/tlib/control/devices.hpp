@@ -16,6 +16,6 @@ public:
   virtual ~DeviceInterface() = default;
 
 protected:
-  CommandPort &command_;
   SensorPort &sensor_;
+  CommandPort &command_;
 }; // class DeviceInterface
