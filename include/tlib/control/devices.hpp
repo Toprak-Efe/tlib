@@ -2,7 +2,9 @@
 
 #include <tlib/control/signal.hpp>
 
-template <typename SensorType, typename CommandType> class DeviceInterface {
+template <typename SensorType, typename CommandType, size_t SensorHold = 0,
+          size_t CommandHold = 0>
+class DeviceInterface {
   using SensorPort = SignalPort<SensorType, 0>;
   using CommandPort = SignalPort<CommandType, 0>;
 

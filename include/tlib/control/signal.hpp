@@ -7,7 +7,7 @@
 #include <tlib/control/nthhold.hpp>
 #include <tlib/control/telemetry.hpp>
 
-template <typename Signal, size_t HoldOrder> class SignalPort {
+template <typename Signal, size_t HoldOrder = 0> class SignalPort {
   static constexpr std::size_t QueueSize{1024};
 
 public:
