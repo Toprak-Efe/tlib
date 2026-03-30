@@ -43,7 +43,7 @@ public:
     return *this;
   }
 
-  FileLock(std::string prefix, Identifier identifier) {
+  explicit FileLock(std::string prefix, Identifier identifier) {
     static std::filesystem::path base_path =
         std::filesystem::temp_directory_path();
     std::filesystem::path lockpath;
