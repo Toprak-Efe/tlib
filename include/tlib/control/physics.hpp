@@ -21,6 +21,13 @@ public:
   using Timepoint = Clock::time_point;
 
   SpatialVector() : timestamp() { data.setZero(); };
+  SpatialVector(SpatialVector &&vec)
+      : data(vec.data), timestamp(vec.timestamp) {
+    vec.data.setZero();
+    vec.timestamp = Timepoint{};
+  }
+  SpatialVector(const SpatialVector &vec)
+      : data(vec.data), timestamp(vec.timestamp) {}
   explicit SpatialVector(const Vector6 &vec, const Timepoint &tsp = {})
       : data(vec), timestamp(tsp) {}
   SpatialVector(const Vector3 &linear, const Vector3 &angular,
