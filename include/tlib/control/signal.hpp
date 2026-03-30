@@ -1,11 +1,13 @@
 #pragma once
 
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <tlib/concurrency/triplebuffer.hpp>
+#include <tlib/control/nthhold.hpp>
 #include <tlib/control/telemetry.hpp>
 
-template <typename Signal> class SignalPort {
+template <typename Signal, size_t HoldOrder> class SignalPort {
   static constexpr std::size_t QueueSize{1024};
 
 public:
@@ -14,7 +16,15 @@ public:
     telemetry_ = std::make_unique<TelemetryChannel<Signal>>(channel_name);
   }
 
-  bool sample(Signal &signal) { return buffer_.get(signal); }
+  Signal sample() {
+    Signal signal;
+    if (buffer_.get(signal)) {
+      hold_.push(signal);
+    } else {
+      signal = hold_.sample();
+    }
+    return signal;
+  }
 
   void push(const Signal &signal) {
     buffer_.add(signal);
@@ -25,6 +35,7 @@ public:
 
 private:
   TripleBuffer<Signal> buffer_;
+  NthOrderHold<Signal, HoldOrder> hold_;
   std::unique_ptr<TelemetryChannel<Signal>> telemetry_;
 }; // class SignalPort
 

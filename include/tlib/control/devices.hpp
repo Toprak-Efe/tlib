@@ -3,8 +3,8 @@
 #include <tlib/control/signal.hpp>
 
 template <typename SensorType, typename CommandType> class DeviceInterface {
-  using SensorPort = SignalPort<SensorType>;
-  using CommandPort = SignalPort<CommandType>;
+  using SensorPort = SignalPort<SensorType, 0>;
+  using CommandPort = SignalPort<CommandType, 0>;
 
 public:
   DeviceInterface(SensorPort &sensor_port, CommandPort &command_port)
