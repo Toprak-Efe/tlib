@@ -3,7 +3,7 @@
 #include <concepts>
 #include <stdexcept>
 #include <tlib/control/concepts/arithmetic.hpp>
-#include <tlib/control/physics.hpp>
+#include <tlib/control/spatial.hpp>
 
 template <typename T>
   requires SelfArithmetic<T> && std::copy_constructible<T>

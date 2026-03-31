@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <tlib/control/clamping.hpp>
-#include <tlib/control/physics.hpp>
+#include <tlib/control/spatial.hpp>
 
 struct NullTag {}; // struct NullTag
 using Vec = SpatialVector<NullTag>;
