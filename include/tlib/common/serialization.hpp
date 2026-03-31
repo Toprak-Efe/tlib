@@ -1,57 +1,47 @@
 #pragma once
 
-#include <cstddef>
-#include <filesystem>
-#include <fstream>
-#include <ios>
-#include <stdexcept>
-#include <type_traits>
-#include <vector>
+#include <cereal/cereal.hpp>
+#include <tlib/control/spatial.hpp>
+#include <chrono>
 
-inline constexpr std::size_t max_serialized_elements = 1 << 26; // ~67M elements
+namespace cereal {
 
-template <typename T>
-void serialize_vector(const std::filesystem::path &fpath,
-                      const std::vector<T> &vec) {
-  static_assert(std::is_trivially_copyable_v<T>,
-                "Type must be trivially copyable.");
-
-  std::ofstream file{fpath, std::ios::binary};
-  if (!file)
-    throw std::runtime_error("Unable to open file for writing: " +
-                             fpath.string());
-
-  auto count = vec.size();
-
-  file.write(reinterpret_cast<const char *>(&count), sizeof(count));
-  file.write(reinterpret_cast<const char *>(vec.data()), sizeof(T) * count);
-
-  if (!file)
-    throw std::runtime_error("Failed to write vector data: " + fpath.string());
+template <class Archive, class Scalar, int Rows, int Cols, int Options,
+          int MaxRows, int MaxCols>
+void save(
+    Archive &ar,
+    Eigen::Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> const &m) {
+  int rows = m.rows();
+  int cols = m.cols();
+  ar(rows, cols);
+  for (int i = 0; i < rows; ++i)
+    for (int j = 0; j < cols; ++j)
+      ar(m(i, j));
 }
 
-template <typename T>
-std::vector<T> deserialize_vector(const std::filesystem::path &fpath) {
-  static_assert(std::is_trivially_copyable_v<T>,
-                "Type must be trivially copyable.");
-
-  std::ifstream file{fpath, std::ios::binary};
-  if (!file)
-    throw std::runtime_error("Unable to open file for reading: " +
-                             fpath.string());
-
-  std::size_t count{0};
-  if (!file.read(reinterpret_cast<char *>(&count), sizeof(count)))
-    throw std::runtime_error("Failed to read element count: " + fpath.string());
-
-  if (count > max_serialized_elements)
-    throw std::runtime_error("Element count exceeds safety limit: " +
-                             std::to_string(count));
-
-  std::vector<T> out(count);
-
-  if (!file.read(reinterpret_cast<char *>(out.data()), sizeof(T) * count))
-    throw std::runtime_error("Failed to read vector data: " + fpath.string());
-
-  return out;
+template <class Archive, class Scalar, int Rows, int Cols, int Options,
+          int MaxRows, int MaxCols>
+void load(Archive &ar,
+          Eigen::Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> &m) {
+  int rows, cols;
+  ar(rows, cols);
+  m.resize(rows, cols);
+  for (int i = 0; i < rows; ++i)
+    for (int j = 0; j < cols; ++j)
+      ar(m(i, j));
 }
+
+template <class Archive, class Clock, class Duration>
+void save(Archive& ar, const std::chrono::time_point<Clock, Duration>& tp) {
+    auto d = tp.time_since_epoch().count();
+    ar(d);
+}
+
+template <class Archive, class Clock, class Duration>
+void load(Archive& ar, std::chrono::time_point<Clock, Duration>& tp) {
+    typename Duration::rep d;
+    ar(d);
+    tp = std::chrono::time_point<Clock, Duration>(Duration(d));
+}
+
+}; // namespace cereal

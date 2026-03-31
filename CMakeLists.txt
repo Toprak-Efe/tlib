@@ -3,6 +3,15 @@ project(tlib)
 
 find_package(Eigen3 REQUIRED)
 
+include(FetchContent)
+
+FetchContent_Declare(
+    cereal
+    GIT_REPOSITORY https://github.com/USCiLab/cereal.git
+    GIT_TAG v1.3.2
+)
+FetchContent_MakeAvailable(cereal)
+
 set(HEADERS
     #common
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/common/serialization.hpp
@@ -37,7 +46,11 @@ target_sources(tlib
     PRIVATE
     ${SOURCES}
 )
-target_link_libraries(tlib PUBLIC Eigen3::Eigen)
+target_link_libraries(tlib
+PUBLIC
+    Eigen3::Eigen
+    cereal::cereal
+)
 target_compile_features(tlib PUBLIC cxx_std_23)
 
 if(TESTS_ON)

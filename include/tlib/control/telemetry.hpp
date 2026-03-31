@@ -1,13 +1,17 @@
 #pragma once
 
+#include <cereal/archives/portable_binary.hpp>
+#include <cereal/archives/binary.hpp>
+#include <cereal/cereal.hpp>
 #include <chrono>
 #include <filesystem>
+#include <fstream>
 #include <mutex>
 #include <stop_token>
 #include <thread>
-#include <tlib/common/serialization.hpp>
-#include <tlib/concurrency/ringbuffer.hpp>
 #include <vector>
+#include <tlib/concurrency/ringbuffer.hpp>
+#include <tlib/common/serialization.hpp>
 
 class DrainableChannel {
 public:
@@ -88,10 +92,12 @@ public:
     static auto log_folder =
         std::filesystem::temp_directory_path() / std::string("tlibtelemetry");
     static auto filename =
-        std::format("{:%Y%m%d%H%M}", std::chrono::system_clock::now());
+        std::format("{:%Y%m%d%H%M}.bin", std::chrono::system_clock::now());
     auto log_file = log_folder / channel_name_ / filename;
     std::filesystem::create_directories(log_file.parent_path());
-    serialize_vector(log_file, buffer_);
+    std::ofstream log_stream{log_file, std::ios::binary};
+    cereal::PortableBinaryOutputArchive ar(log_stream);
+    ar(buffer_);
   }
 
 private:

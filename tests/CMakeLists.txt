@@ -10,10 +10,9 @@ list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/signals.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/flock_test.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/clamping_test.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/nthhold_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/serialization_test.cpp
 )
 
 add_executable(tests)
