@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <filesystem>
 #include <mutex>
 #include <stop_token>
@@ -84,8 +85,11 @@ public:
   }
 
   void flush() {
-    std::filesystem::path log_file{std::filesystem::current_path() /
-                                   channel_name_};
+    static auto log_folder =
+        std::filesystem::temp_directory_path() / std::string("tlibtelemetry");
+    static auto filename =
+        std::format("{:%Y%m%d%H%M}", std::chrono::system_clock::now());
+    auto log_file = log_folder / channel_name_ / filename;
     std::filesystem::create_directories(log_file.parent_path());
     serialize_vector(log_file, buffer_);
   }
@@ -95,4 +99,3 @@ private:
   RingBuffer<T, 1024> queue_;
   std::vector<T> buffer_;
 };
-
