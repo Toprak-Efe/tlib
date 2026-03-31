@@ -22,12 +22,19 @@ public:
 
   SpatialVector() : timestamp() { data.setZero(); };
   SpatialVector(SpatialVector &&vec)
-      : data(vec.data), timestamp(vec.timestamp) {
-    vec.data.setZero();
-    vec.timestamp = Timepoint{};
-  }
+      : data(std::move(vec.data)), timestamp(std::move(vec.timestamp)) {}
   SpatialVector(const SpatialVector &vec)
       : data(vec.data), timestamp(vec.timestamp) {}
+  SpatialVector &operator=(SpatialVector &&vec) {
+    data = std::move(vec.data);
+    timestamp = std::move(vec.timestamp);
+    return *this;
+  }
+  SpatialVector &operator=(const SpatialVector &vec) {
+    data = vec.data;
+    timestamp = vec.timestamp;
+    return *this;
+  }
   explicit SpatialVector(const Vector6 &vec, const Timepoint &tsp = {})
       : data(vec), timestamp(tsp) {}
   SpatialVector(const Vector3 &linear, const Vector3 &angular,

@@ -20,6 +20,7 @@ public:
     using dur = std::chrono::duration<double>;
 
     T sample_curr{};
+    const auto t_eval = sample_curr.stamp(); 
     for (size_t i = 0; i < Order + 1;
          i++) { // construct lagrange polynomial for index i
                 // a*(t-t_1)(t-t_2)...(t-t_{Order}): j->t_j, i!=j
@@ -32,7 +33,7 @@ public:
         if (i == j)
           continue;
         T sample_prev_j = m_samples.at(j);
-        t_sum *= dur(sample_curr.stamp() - sample_prev_j.stamp()).count();
+        t_sum *= dur(t_eval - sample_prev_j.stamp()).count();
         t_i_sum *= dur(sample_prev_i.stamp() - sample_prev_j.stamp()).count();
       }
       a = sample_prev_i / t_i_sum;
