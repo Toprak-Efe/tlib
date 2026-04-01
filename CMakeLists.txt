@@ -3,18 +3,13 @@ project(tlib)
 
 find_package(Eigen3 REQUIRED)
 
-include(FetchContent)
-
-FetchContent_Declare(
-    cereal
-    GIT_REPOSITORY https://github.com/USCiLab/cereal.git
-    GIT_TAG 22a1b36 
-)
-FetchContent_MakeAvailable(cereal)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(HEADERS
     #common
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/common/serialization.hpp
+    ## concepts
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/common/concepts/serializable.hpp
     #concurrency
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/concurrency/cache.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/concurrency/flock.hpp
@@ -49,9 +44,7 @@ target_sources(tlib
 target_link_libraries(tlib
 PUBLIC
     Eigen3::Eigen
-    cereal::cereal
 )
-target_compile_features(tlib PUBLIC cxx_std_23)
 
 if(TESTS_ON)
     add_subdirectory(tests)

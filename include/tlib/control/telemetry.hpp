@@ -1,17 +1,14 @@
 #pragma once
 
-#include <cereal/archives/portable_binary.hpp>
-#include <cereal/archives/binary.hpp>
-#include <cereal/cereal.hpp>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <ios>
 #include <mutex>
 #include <stop_token>
 #include <thread>
-#include <vector>
 #include <tlib/concurrency/ringbuffer.hpp>
-#include <tlib/common/serialization.hpp>
+#include <vector>
 
 class DrainableChannel {
 public:
@@ -96,8 +93,13 @@ public:
     auto log_file = log_folder / channel_name_ / filename;
     std::filesystem::create_directories(log_file.parent_path());
     std::ofstream log_stream{log_file, std::ios::binary};
-    cereal::PortableBinaryOutputArchive ar(log_stream);
-    ar(buffer_);
+
+    std::vector<std::byte> data;
+    for (auto t : buffer_) {
+      T::serial_save(data, t);
+    }
+    log_stream.write(reinterpret_cast<const char *>(data.data()),
+                     static_cast<std::streamsize>(data.size()));
   }
 
 private:

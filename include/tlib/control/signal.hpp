@@ -3,7 +3,6 @@
 #include <cstddef>
 #include <memory>
 #include <string>
-#include <tlib/common/serialization.hpp>
 #include <tlib/concurrency/triplebuffer.hpp>
 #include <tlib/control/nthhold.hpp>
 #include <tlib/control/telemetry.hpp>

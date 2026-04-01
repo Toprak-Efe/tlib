@@ -2,16 +2,13 @@
 
 #include <algorithm>
 #include <array>
-#include <cereal/access.hpp>
-#include <cereal/cereal.hpp>
-#include <cereal/types/tuple.hpp>
-#include <cereal/types/vector.hpp>
 #include <chrono>
+#include <cstddef>
+#include <cstring>
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/src/Core/Map.h>
 #include <eigen3/Eigen/src/Geometry/Quaternion.h>
 #include <tlib/control/concepts/timestamped.hpp>
-#include <tlib/common/serialization.hpp>
 
 struct WrenchTag {};       // Force (F, t)
 struct TwistTag {};        // Velocity (V, w)
@@ -63,6 +60,34 @@ public:
   auto linear() { return data.template head<3>(); }
   auto angular() const { return data.template tail<3>(); }
   auto angular() { return data.template tail<3>(); }
+
+  static constexpr size_t CanonicalSize =
+      sizeof(std::array<double, 6>) +
+      sizeof(decltype(Timestamp{}.time_since_epoch().count()));
+
+  static void serial_save(std::vector<std::byte> &v, const SpatialVector &s) {
+    std::array<double, 6> arr;
+    Eigen::Map<Vector6>(arr.data(), arr.size()) = s.vec();
+    const auto *v_ptr = reinterpret_cast<const std::byte *>(arr.data());
+    v.insert(v.end(), v_ptr, v_ptr + sizeof(arr));
+
+    auto ticks = s.timestamp.time_since_epoch().count();
+    const auto *t_ptr = reinterpret_cast<const std::byte *>(&ticks);
+    v.insert(v.end(), t_ptr, t_ptr + sizeof(ticks));
+  }
+
+  static void serial_load(std::span<std::byte> v, SpatialVector &s) {
+    assert(v.size() >= CanonicalSize);
+
+    std::array<double, 6> arr;
+    memcpy(arr.data(), v.data(), sizeof(arr));
+    s.vec() = Eigen::Map<Vector6>(arr.data(), arr.size());
+
+    decltype(s.timestamp.time_since_epoch().count()) ticks;
+    memcpy(&ticks, v.data() + sizeof(arr), sizeof(ticks));
+    decltype(s.timestamp.time_since_epoch()) dur{ticks};
+    s.stamp() = Timestamp{dur};
+  }
 
   /* Arithmetic Operators */
   SpatialVector operator+(Scalar s) const {
@@ -146,12 +171,6 @@ public:
 private:
   Vector6 data;
   Timepoint timestamp;
-
-  friend class cereal::access;
-
-  template <class Archive> void serialize(Archive &ar) {
-    ar(CEREAL_NVP(data), CEREAL_NVP(timestamp));
-  }
 }; // class SpatialVector
 
 using Wrench = SpatialVector<WrenchTag>;
@@ -163,17 +182,17 @@ public:
   using Scalar = double;
   using Matrix6 = Eigen::Matrix<Scalar, 6, 6>;
 
-  SpatialOperator() : m_mat(Matrix6::Identity()) {}
-  SpatialOperator(const Matrix6 &mat) : m_mat{mat} {}
-  SpatialOperator(const SpatialOperator &oth) : m_mat(oth.m_mat) {}
-  SpatialOperator(SpatialOperator &&oth) : m_mat(oth.m_mat) {}
+  SpatialOperator() : mat_(Matrix6::Identity()) {}
+  SpatialOperator(const Matrix6 &mat) : mat_{mat} {}
+  SpatialOperator(const SpatialOperator &oth) : mat_(oth.mat_) {}
+  SpatialOperator(SpatialOperator &&oth) : mat_(oth.mat_) {}
 
   SpatialVector<ToTag> operator*(const SpatialVector<FromTag> &v) const {
-    return SpatialVector<ToTag>(m_mat * v.vec());
+    return SpatialVector<ToTag>(mat_ * v.vec());
   }
 
 private:
-  Matrix6 m_mat;
+  Matrix6 mat_;
 
 }; // class SpatialOperator
 
@@ -191,6 +210,7 @@ public:
   using Clock = std::chrono::steady_clock;
   using Timepoint = Clock::time_point;
   static constexpr size_t SignalCount = sizeof...(Signals);
+  static constexpr size_t CanonicalSize = SignalCount*SpatialVector<void>::CanonicalSize; 
 
   CompositeSignal() = default;
   explicit CompositeSignal(const Signals &...args) : signals_{args...} {}
@@ -203,6 +223,27 @@ public:
 
   template <size_t I> auto &get() { return std::get<I>(signals_); }
   template <size_t I> const auto &get() const { return std::get<I>(signals_); }
+
+  static void serial_save(std::vector<std::byte> &v, const CompositeSignal &s) {
+    [&]<size_t... Is>(std::index_sequence<Is...>) {
+      (std::tuple_element_t<Is, decltype(s.signals_)>::serial_save(
+           v, std::get<Is>(s.signals_)),
+       ...);
+    }(Indices{});
+  }
+
+  static void serial_load(std::span<std::byte> v, CompositeSignal &s) {
+    size_t offset = 0;
+    [&]<size_t... Is>(std::index_sequence<Is...>) {
+      (([&] {
+         using S = std::tuple_element_t<Is, decltype(signals_)>;
+         auto span = std::span(v).subspan(offset);
+         S::serial_load(span, std::get<Is>(s.signals_));
+         offset += S::CanonicalSize;
+       }()),
+       ...);
+    }(Indices{});
+  }
 
   CompositeSignal operator-(const CompositeSignal &rhs) const {
     return binary([](const auto &a, const auto &b) { return a - b; }, rhs,
@@ -305,8 +346,4 @@ private:
   }
 
   std::tuple<Signals...> signals_;
-
-  friend cereal::access;
-
-  template <class Archive> void serialize(Archive &ar) { ar(signals_); }
 }; // class CompositeSignal
