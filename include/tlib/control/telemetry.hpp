@@ -86,10 +86,12 @@ public:
   }
 
   void flush() {
-    static auto log_folder =
+    const static auto log_folder =
         std::filesystem::temp_directory_path() / std::string("tlibtelemetry");
-    static auto filename =
-        std::format("{:%Y%m%d%H%M}.bin", std::chrono::system_clock::now());
+    const static auto filename =
+        std::format("{:%Y%m%d%H%M}.bin",
+                    std::chrono::zoned_time{std::chrono::current_zone(),
+                                            std::chrono::system_clock::now()});
     auto log_file = log_folder / channel_name_ / filename;
     std::filesystem::create_directories(log_file.parent_path());
     std::ofstream log_stream{log_file, std::ios::binary};
