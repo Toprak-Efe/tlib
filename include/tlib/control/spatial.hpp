@@ -76,7 +76,7 @@ public:
     v.insert(v.end(), t_ptr, t_ptr + sizeof(ticks));
   }
 
-  static void serial_load(std::span<std::byte> v, SpatialVector &s) {
+  static void serial_load(std::span<const std::byte> v, SpatialVector &s) {
     assert(v.size() >= CanonicalSize);
 
     std::array<double, 6> arr;
@@ -210,7 +210,7 @@ public:
   using Clock = std::chrono::steady_clock;
   using Timepoint = Clock::time_point;
   static constexpr size_t SignalCount = sizeof...(Signals);
-  static constexpr size_t CanonicalSize = SignalCount*SpatialVector<void>::CanonicalSize; 
+  static constexpr size_t CanonicalSize = (Signals::CanonicalSize + ...);
 
   CompositeSignal() = default;
   explicit CompositeSignal(const Signals &...args) : signals_{args...} {}
@@ -232,7 +232,7 @@ public:
     }(Indices{});
   }
 
-  static void serial_load(std::span<std::byte> v, CompositeSignal &s) {
+  static void serial_load(std::span<const std::byte> v, CompositeSignal &s) {
     size_t offset = 0;
     [&]<size_t... Is>(std::index_sequence<Is...>) {
       (([&] {
