@@ -20,6 +20,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/nthhold.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/spatial.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/biquad.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/calculus.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/signal.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/telemetry.hpp
     ## concepts
