@@ -3,18 +3,18 @@
 #include <tlib/control/concepts/timestamped.hpp>
 #include <tlib/control/concepts/vector.hpp>
 
-template <typename V>
-  requires Vector<V> && Timestamped<V>
+template <typename V, typename F>
+  requires Vector<V> && Timestamped<V> && Vector<F> && Timestamped<F>
 class Differentiator {
 public:
   Differentiator() = default;
 
-  V sample(const V &data) {
-    V out;
+  F sample(const V &data) {
+    F out{};
     out += 1;
     auto dt = std::chrono::duration_cast<std::chrono::seconds>(data.stamp() -
                                                                x1_.stamp());
-    out *= (data - x1_) / dt;
+    out *= static_cast<F>((data - x1_) / dt);
     x1_ = data;
     return out;
   }
@@ -25,15 +25,17 @@ private:
   V x1_;
 }; // class Differentiator
 
-template <typename V>
-  requires Vector<V> && Timestamped<V>
-class Integrator {
+template <typename V, typename F>
+  requires Vector<V> && Timestamped<V> && Vector<F> && Timestamped<F>
+class LeakyIntegrator {
 public:
-  Integrator() = default;
-  V sample(const V &data) {
+  LeakyIntegrator() : leak_(0.995), x1_(), sum_() {}
+  LeakyIntegrator(double leak) : leak_(leak), x1_(), sum_() {}
+  F sample(const V &data) {
     auto dt = std::chrono::duration_cast<std::chrono::seconds>(data.stamp() -
                                                                x1_.stamp());
-    sum_ += (data + x1_) / 2.0;
+    sum_ *= leak_;
+    sum_ += static_cast<F>((data + x1_) / 2.0);
     x1_ = data;
     return sum_;
   }
@@ -44,6 +46,7 @@ public:
   }
 
 private:
+  double leak_;
   V x1_;
-  V sum_;
+  F sum_;
 }; // class Integrator
