@@ -1,52 +1,51 @@
 #pragma once
 
-#include <tlib/control/concepts/timestamped.hpp>
-#include <tlib/control/concepts/vector.hpp>
+#include <iterator>
+#include <tlib/control/concepts/holdable.hpp>
 
-template <typename V, typename F>
-  requires Vector<V> && Timestamped<V> && Vector<F> && Timestamped<F>
-class Differentiator {
+template <Holdable T> class Differentiator {
 public:
-  Differentiator() = default;
-
-  F sample(const V &data) {
-    F out{};
-    out += 1;
+  T operator()(const T &data) {
     auto dt = std::chrono::duration<double>(data.stamp() - x1_.stamp()).count();
-    out *= static_cast<F>((data - x1_) / dt);
+
+    T out{};
+    if (dt > 1e-9) {
+      out = (data - x1_) / dt;
+      out.stamp() = data.stamp();
+    }
     x1_ = data;
-    out.stamp() = data.stamp();
     return out;
   }
 
-  void reset() { x1_ = V{}; }
-
-private:
-  V x1_;
-}; // class Differentiator
-
-template <typename V, typename F>
-  requires Vector<V> && Timestamped<V> && Vector<F> && Timestamped<F>
-class LeakyIntegrator {
-public:
-  LeakyIntegrator() : leak_(0.995), x1_(), sum_() {}
-  LeakyIntegrator(double leak) : leak_(leak), x1_(), sum_() {}
-  F sample(const V &data) {
-    auto dt = std::chrono::duration<double>(data.stamp() - x1_.stamp()).count();
-    sum_ *= leak_;
-    sum_ += static_cast<F>((data + x1_) / 2.0);
-    x1_ = data;
-    sum_.stamp() = data.stamp();
-    return sum_;
-  }
-
   void reset() {
-    x1_ = V{};
-    sum_ = V{};
+    T zero{};
+    zero.stamp() = x1_.stamp();
+    x1_ = zero;
   }
 
 private:
-  double leak_;
-  V x1_;
-  F sum_;
-}; // class Integrator
+  T x1_{};
+  bool first_{true};
+}; // Differentiator
+
+template <Holdable T> class DecayingIntegrator {
+public:
+  explicit DecayingIntegrator(double decay = 0.995) : decay_(decay) {}
+
+  T operator()(const T &data) {
+    auto dt = std::chrono::duration<double>(data.stamp() - x1_.stamp()).count();
+
+    if (dt > 1e-9) {
+      accum_ *= decay_;
+      accum_ += (data + x1_) * (0.5 * dt);
+      accum_.stamp() = data.stamp();
+    }
+    x1_ = data;
+    return accum_;
+  }
+
+private:
+  double decay_;
+  T x1_{};
+  T accum_{};
+}; // class DecayingIntegrator

@@ -1,11 +1,7 @@
 #pragma once
 
 #include <chrono>
-#include <tlib/control/concepts/timestamped.hpp>
-#include <tlib/control/concepts/vector.hpp>
-
-template <typename T>
-concept Holdable = Vector<T> && Timestamped<T>;
+#include <tlib/control/concepts/holdable.hpp>
 
 template <Holdable T, size_t Order> class NthOrderHold {
 public:
