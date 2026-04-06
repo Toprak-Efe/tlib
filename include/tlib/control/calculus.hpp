@@ -14,7 +14,7 @@ public:
     out += 1;
     auto dt = std::chrono::duration_cast<std::chrono::seconds>(data.stamp() -
                                                                x1_.stamp());
-    out *= static_cast<F>((data - x1_) / dt);
+    out *= reinerpret_cast<F>((data - x1_) / dt);
     x1_ = data;
     return out;
   }
@@ -35,7 +35,7 @@ public:
     auto dt = std::chrono::duration_cast<std::chrono::seconds>(data.stamp() -
                                                                x1_.stamp());
     sum_ *= leak_;
-    sum_ += static_cast<F>((data + x1_) / 2.0);
+    sum_ += reinterpret_cast<F>((data + x1_) / 2.0);
     x1_ = data;
     return sum_;
   }
