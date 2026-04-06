@@ -26,6 +26,7 @@ set(HEADERS
     ## concepts
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/concepts/arithmetic.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/concepts/vector.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/concepts/holdable.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/concepts/timestamped.hpp
 )
 
