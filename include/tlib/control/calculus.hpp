@@ -12,8 +12,7 @@ public:
   F sample(const V &data) {
     F out{};
     out += 1;
-    auto dt = std::chrono::duration_cast<std::chrono::seconds>(data.stamp() -
-                                                               x1_.stamp());
+    auto dt = std::chrono::duration<double>(data.stamp() - x1_.stamp()).count();
     out *= reinterpret_cast<F>((data - x1_) / dt);
     x1_ = data;
     return out;
@@ -32,8 +31,7 @@ public:
   LeakyIntegrator() : leak_(0.995), x1_(), sum_() {}
   LeakyIntegrator(double leak) : leak_(leak), x1_(), sum_() {}
   F sample(const V &data) {
-    auto dt = std::chrono::duration_cast<std::chrono::seconds>(data.stamp() -
-                                                               x1_.stamp());
+    auto dt = std::chrono::duration<double>(data.stamp() - x1_.stamp()).count();
     sum_ *= leak_;
     sum_ += reinterpret_cast<F>((data + x1_) / 2.0);
     x1_ = data;
