@@ -13,7 +13,7 @@ public:
     F out{};
     out += 1;
     auto dt = std::chrono::duration<double>(data.stamp() - x1_.stamp()).count();
-    out *= reinterpret_cast<F>((data - x1_) / dt);
+    out *= static_cast<F>((data - x1_) / dt);
     x1_ = data;
     return out;
   }
@@ -33,7 +33,7 @@ public:
   F sample(const V &data) {
     auto dt = std::chrono::duration<double>(data.stamp() - x1_.stamp()).count();
     sum_ *= leak_;
-    sum_ += reinterpret_cast<F>((data + x1_) / 2.0);
+    sum_ += static_cast<F>((data + x1_) / 2.0);
     x1_ = data;
     return sum_;
   }
