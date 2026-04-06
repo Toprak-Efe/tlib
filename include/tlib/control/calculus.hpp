@@ -14,7 +14,7 @@ public:
     out += 1;
     auto dt = std::chrono::duration_cast<std::chrono::seconds>(data.stamp() -
                                                                x1_.stamp());
-    out *= reinerpret_cast<F>((data - x1_) / dt);
+    out *= reinterpret_cast<F>((data - x1_) / dt);
     x1_ = data;
     return out;
   }
