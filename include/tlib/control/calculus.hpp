@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iterator>
 #include <tlib/control/concepts/holdable.hpp>
 
 template <Holdable T> class Differentiator {

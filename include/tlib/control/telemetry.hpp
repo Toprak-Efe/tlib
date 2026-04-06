@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <ios>
@@ -8,6 +9,7 @@
 #include <stop_token>
 #include <thread>
 #include <tlib/concurrency/ringbuffer.hpp>
+#include <type_traits>
 #include <vector>
 
 class DrainableChannel {
@@ -108,4 +110,57 @@ private:
   std::string channel_name_;
   RingBuffer<T, 1024> queue_;
   std::vector<T> buffer_;
+};
+
+template <typename T, size_t S>
+  requires std::is_arithmetic_v<T>
+class TelemetryChannel<std::array<T, S>> : public DrainableChannel {
+public:
+  using Array = std::array<T, S>;
+
+  TelemetryChannel(const std::string &channel_name)
+      : channel_name_{channel_name} {
+    buffer_.reserve(1024);
+    TelemetrySink::instance().register_channel(this);
+  }
+
+  ~TelemetryChannel() {
+    TelemetrySink::instance().unregister_channel(this);
+    drain();
+    flush();
+  }
+
+  void push(const Array &data) { queue_.add(data); }
+
+  void drain() override {
+    Array data{};
+    while (queue_.get(data)) {
+      buffer_.emplace_back(std::move(data));
+    }
+  }
+
+  void flush() {
+    const static auto log_folder =
+        std::filesystem::temp_directory_path() / std::string("tlibtelemetry");
+    const static auto filename =
+        std::format("{:%Y%m%d%H%M}.bin",
+                    std::chrono::zoned_time{std::chrono::current_zone(),
+                                            std::chrono::system_clock::now()});
+    auto log_file = log_folder / channel_name_ / filename;
+    std::filesystem::create_directories(log_file.parent_path());
+    std::ofstream log_stream{log_file, std::ios::binary};
+
+    std::vector<std::byte> data;
+    for (Array t : buffer_) {
+        const auto *bytes = reinterpret_cast<const std::byte *>(t.data());
+        data.insert(data.end(), bytes, bytes + sizeof(Array));
+    }
+    log_stream.write(reinterpret_cast<const char *>(data.data()),
+                     static_cast<std::streamsize>(data.size()));
+  }
+
+private:
+  std::string channel_name_;
+  RingBuffer<Array, 1024> queue_;
+  std::vector<Array> buffer_;
 };
