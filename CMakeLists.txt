@@ -5,6 +5,7 @@ find_package(Eigen3 REQUIRED)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(HEADERS
     #common
@@ -23,6 +24,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/calculus.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/signal.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/telemetry.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/butterworth.hpp
     ## concepts
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/concepts/arithmetic.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/concepts/vector.hpp
@@ -51,5 +53,6 @@ PUBLIC
 
 if(TESTS_ON)
     add_subdirectory(tests)
+    add_subdirectory(analysis)
 endif()
 

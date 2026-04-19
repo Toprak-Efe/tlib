@@ -14,6 +14,7 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/clamping_test.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/devices_test.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/serialization_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/butterworth.cpp
 )
 
 add_executable(tests)
