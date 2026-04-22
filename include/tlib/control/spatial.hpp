@@ -27,7 +27,7 @@ public:
       : data(std::move(vec.data)), timestamp(std::move(vec.timestamp)) {}
   SpatialVector(const SpatialVector &vec)
       : data(vec.data), timestamp(vec.timestamp) {}
-  SpatialVector(const Timestamp &stamp) : data(), timestamp(stamp) {}
+  SpatialVector(const Timestamp &stamp) : timestamp(stamp) { data.setZero(); }
   template <typename F>
   explicit SpatialVector(const SpatialVector<F> &oth)
       : data{oth.vec()}, timestamp{oth.stamp()} {}
