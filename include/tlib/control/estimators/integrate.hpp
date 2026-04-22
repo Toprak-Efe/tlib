@@ -16,7 +16,7 @@ protected:
 }; // IntegrationPolicy
 
 template <typename Policy, Holdable T>
-  requires requires(Policy p) { std::derived_from<Policy, IntegrationPolicy>; }
+  requires std::derived_from<Policy, IntegrationPolicy>
 class Integrator {
 public:
   Integrator() = default;
@@ -42,7 +42,7 @@ public:
 
     Timestamp t = x.stamp();
     Timestamp t1 = y1_.stamp();
-    auto dt = (t - t1).count();
+    auto dt = to_seconds(t - t1);
 
     y1_ += x * dt;
     return y1_;
@@ -55,7 +55,7 @@ public:
 
     Timestamp t = x.stamp();
     Timestamp t1 = y1_.stamp();
-    auto dt = (t - t1).count();
+    auto dt = to_seconds(t - t1);
 
     T y = y1_ + x * dt;
     return y;
@@ -87,7 +87,7 @@ public:
 
     Timestamp t = x.stamp();
     Timestamp t1 = x1_.stamp();
-    auto dt = (t - t1).count();
+    auto dt = to_seconds(t - t1);
 
     y1_ += (x + x1_) * dt / 2.0;
     x1_ = x;
@@ -101,7 +101,7 @@ public:
 
     Timestamp t = x.stamp();
     Timestamp t1 = x1_.stamp();
-    auto dt = (t - t1).count();
+    auto dt = to_seconds(t - t1);
 
     T y = y1_ + (x + x1_) * dt / 2.0;
     return y;

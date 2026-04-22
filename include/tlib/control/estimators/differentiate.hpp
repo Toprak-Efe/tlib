@@ -46,7 +46,7 @@ public:
 
     Timestamp t = x.stamp();
     Timestamp t1 = x1_.stamp();
-    auto dt = (t - t1).count();
+    auto dt = to_seconds(t - t1);
 
     T y = (x - x1_) / dt;
     x1_ = x;
@@ -60,7 +60,7 @@ public:
 
     Timestamp t = x.stamp();
     Timestamp t1 = x1_.stamp();
-    auto dt = (t - t1).count();
+    auto dt = to_seconds(t - t1);
 
     return (x - x1_) / dt;
   }
@@ -86,7 +86,7 @@ public:
 
     Timestamp t = x.stamp();
     Timestamp t1 = xn_[0].stamp();
-    auto dt = (t - t1).count();
+    auto dt = to_seconds(t - t1);
     T y = (x - xn_[0]) / dt;
 
     xn_[0] = xn_[1];
@@ -102,7 +102,7 @@ public:
 
     Timestamp t = x.stamp();
     Timestamp t1 = xn_[0].stamp();
-    auto dt = (t - t1).count();
+    auto dt = to_seconds(t - t1);
     return (x - xn_[0]) / dt;
   }
 
