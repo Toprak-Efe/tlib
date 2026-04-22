@@ -5,31 +5,30 @@
 
 template <Holdable T, size_t Order> class NthOrderHold {
 public:
-  void push(const T &sample) {
+  void operator()(const T &x) {
     for (size_t i = Order; i > 0; i--) {
       m_samples[i] = m_samples[i - 1];
     }
-    m_samples[0] = sample;
+    m_samples[0] = x;
   }
 
-  T sample() {
+  T operator()(const Timestamp &t = now()) {
     using dur = std::chrono::duration<double>;
 
-    T sample_curr{};
-    const auto t_eval = sample_curr.stamp(); 
+    T sample_curr{t};
     for (size_t i = 0; i < Order + 1;
          i++) { // construct lagrange polynomial for index i
                 // a*(t-t_1)(t-t_2)...(t-t_{Order}): j->t_j, i!=j
                 // a = y_i/(t_i-t_1)...
       T sample_prev_i = m_samples.at(i);
 
-      T a;
+      T a{};
       double t_sum{1}, t_i_sum{1};
       for (size_t j = 0; j < Order + 1; j++) {
         if (i == j)
           continue;
         T sample_prev_j = m_samples.at(j);
-        t_sum *= dur(t_eval - sample_prev_j.stamp()).count();
+        t_sum *= dur(t - sample_prev_j.stamp()).count();
         t_i_sum *= dur(sample_prev_i.stamp() - sample_prev_j.stamp()).count();
       }
       a = sample_prev_i / t_i_sum;
@@ -39,18 +38,19 @@ public:
   }
 
 private:
-  std::array<T, Order + 1> m_samples;
+  std::array<T, Order + 1> m_samples{};
 }; // class NthOrderHold
 
 template <Holdable T> class NthOrderHold<T, 0> {
 public:
-  void push(const T &sample) { m_sample = sample; }
-  T sample() { return m_sample; }
+  void push(const T &x) { x1_ = x; }
+  void operator()(const T &x) { x1_ = x; }
+  T operator()(const Timestamp &t = now()) { return x1_; }
 
 private:
-  T m_sample;
+  T x1_{};
 }; // class NthOrderHold
 
-template <typename T> using ZeroOrderHold = NthOrderHold<T, 0>;
-template <typename T> using FirstOrderHold = NthOrderHold<T, 1>;
-template <typename T> using SecondOrderHold = NthOrderHold<T, 2>;
+template <Holdable T> using ZeroOrderHold = NthOrderHold<T, 0>;
+template <Holdable T> using FirstOrderHold = NthOrderHold<T, 1>;
+template <Holdable T> using SecondOrderHold = NthOrderHold<T, 2>;

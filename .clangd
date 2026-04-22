@@ -1,0 +1,5 @@
+CompileFlags:
+  CompilationDatabase: build
+  Add:
+    - -std=c++23
+    - -I/home/toprak/Projects/Active/asclepius/tlib/include

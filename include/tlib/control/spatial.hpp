@@ -23,6 +23,8 @@ public:
   using Timepoint = Clock::time_point;
 
   SpatialVector() : timestamp() { data.setZero(); };
+  SpatialVector(Scalar val) : timestamp() { data.setConstant(val); };
+  SpatialVector(Scalar val, const Timestamp &stamp) : timestamp(stamp) { data.setConstant(val); };
   SpatialVector(SpatialVector &&vec)
       : data(std::move(vec.data)), timestamp(std::move(vec.timestamp)) {}
   SpatialVector(const SpatialVector &vec)

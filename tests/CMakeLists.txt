@@ -9,18 +9,15 @@ FetchContent_MakeAvailable(Catch2)
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/flock_test.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/clamping_test.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/devices_test.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/serialization_test.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/butterworth.cpp
-)
-
 add_executable(tests)
 target_sources(tests
  PRIVATE
- ${SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_flock.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_clamping.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_devices.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_serialization.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_butterworth.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_nthhold.cpp
 )
 target_link_libraries(tests PRIVATE
     Catch2::Catch2WithMain

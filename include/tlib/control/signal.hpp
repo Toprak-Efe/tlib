@@ -19,9 +19,9 @@ public:
   Signal sample() {
     Signal signal;
     if (buffer_.get(signal)) {
-      hold_.push(signal);
+      hold_(signal);
     } else {
-      signal = hold_.sample();
+      signal = hold_();
     }
     return signal;
   }

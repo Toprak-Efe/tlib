@@ -16,3 +16,5 @@ constexpr T to_seconds(const std::chrono::duration<Rep, Period> &dur) noexcept {
       std::chrono::duration_cast<std::chrono::duration<T>>(dur);
   return seconds.count();
 }
+
+inline auto now() { return std::chrono::steady_clock::now(); }
