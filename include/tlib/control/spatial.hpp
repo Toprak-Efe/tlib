@@ -8,7 +8,7 @@
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/src/Core/Map.h>
 #include <eigen3/Eigen/src/Geometry/Quaternion.h>
-#include <tlib/control/concepts/timestamped.hpp>
+#include <tlib/control/concepts/holdable.hpp>
 
 struct WrenchTag {};       // Force (F, t)
 struct TwistTag {};        // Velocity (V, w)
@@ -24,7 +24,9 @@ public:
 
   SpatialVector() : timestamp() { data.setZero(); };
   SpatialVector(Scalar val) : timestamp() { data.setConstant(val); };
-  SpatialVector(Scalar val, const Timestamp &stamp) : timestamp(stamp) { data.setConstant(val); };
+  SpatialVector(Scalar val, const Timestamp &stamp) : timestamp(stamp) {
+    data.setConstant(val);
+  };
   SpatialVector(SpatialVector &&vec)
       : data(std::move(vec.data)), timestamp(std::move(vec.timestamp)) {}
   SpatialVector(const SpatialVector &vec)
@@ -210,7 +212,7 @@ using Stiffness = SpatialOperator<DisplacementTag, WrenchTag>;
 using PositionGain = SpatialOperator<DisplacementTag, TwistTag>;
 
 template <typename... Signals>
-  requires((sizeof...(Signals) > 0) && (Timestamped<Signals> && ...))
+  requires((sizeof...(Signals) > 0) && (Holdable<Signals> && ...))
 class CompositeSignal {
 public:
   using Clock = std::chrono::steady_clock;
@@ -219,6 +221,7 @@ public:
   static constexpr size_t CanonicalSize = (Signals::CanonicalSize + ...);
 
   CompositeSignal() = default;
+  explicit CompositeSignal(const Timestamp &t) : signals_{Signals{t}...} {}
   explicit CompositeSignal(const Signals &...args) : signals_{args...} {}
   explicit CompositeSignal(Signals &&...args) : signals_{std::move(args)...} {}
 

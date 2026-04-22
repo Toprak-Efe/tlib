@@ -1,9 +1,7 @@
-#include "catch2/matchers/catch_matchers.hpp"
-#include "catch2/matchers/catch_matchers_floating_point.hpp"
-#include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <cstdlib>
-#include <ratio>
 #include <tlib/control/concepts/holdable.hpp>
 #include <tlib/control/concepts/timestamped.hpp>
 #include <tlib/control/filters/nthhold.hpp>
@@ -28,7 +26,6 @@ template <std::size_t N> void test_nth_order_hold() {
     sequence[j] = Wrench{value, t};
   }
 
-  /* Input up to and extrapolate last element*/
   for (std::size_t i = 0; i < sequence.size() - 1; i++) {
     hold(sequence[i]);
   }
