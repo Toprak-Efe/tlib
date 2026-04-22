@@ -71,6 +71,10 @@ private:
 }; // FirstDifferenceDifferentiatorPolicy
 
 template <Holdable T>
+using FirstDifferenceDifferentiator =
+    Differentiator<FirstDifferenceDifferentiatorPolicy<T>, T>;
+
+template <Holdable T>
 class CentralDifferenceDifferentiatorPolicy : public DifferentiatePolicy {
 public:
   CentralDifferenceDifferentiatorPolicy() = default;
@@ -106,3 +110,7 @@ private:
   std::array<T, 2> xn_{};
   std::size_t idx_{0};
 }; // CentralDifferenceDifferentiatorPolicy
+
+template <Holdable T>
+using CentralDifferentiator =
+    Differentiator<CentralDifferenceDifferentiatorPolicy<T>, T>;

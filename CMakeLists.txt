@@ -18,6 +18,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/concurrency/triplebuffer.hpp
     #control
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/filters/clamping.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/filters/average.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/filters/nthhold.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/filters/butterworth.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/estimators/differentiate.hpp

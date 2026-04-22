@@ -71,7 +71,11 @@ private:
   bool init_{false};
 }; // EulerIntegrationPolicy
 
-template <Holdable T> class TrapezoidalIntegrationPolicy : public IntegrationPolicy {
+template <Holdable T>
+using EulerIntegrator = Integrator<EulerIntegrationPolicy<T>, T>;
+
+template <Holdable T>
+class TrapezoidalIntegrationPolicy : public IntegrationPolicy {
 public:
   TrapezoidalIntegrationPolicy() = default;
 
@@ -114,3 +118,6 @@ private:
   T y1_{};
   bool init_{false};
 }; // TrapezoidalIntegrationPolicy
+
+template <Holdable T>
+using TrapezoidalIntegrator = Integrator<TrapezoidalIntegrationPolicy<T>, T>;
