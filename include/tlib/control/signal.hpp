@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 #include <tlib/concurrency/triplebuffer.hpp>
-#include <tlib/control/nthhold.hpp>
+#include <tlib/control/filters/nthhold.hpp>
 #include <tlib/control/telemetry.hpp>
 
 template <typename Signal, size_t HoldOrder = 0> class SignalPort {

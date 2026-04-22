@@ -17,14 +17,15 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/concurrency/ringbuffer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/concurrency/triplebuffer.hpp
     #control
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/clamping.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/nthhold.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/filters/clamping.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/filters/nthhold.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/filters/butterworth.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/estimators/differentiate.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/estimators/integrate.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/spatial.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/biquad.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/calculus.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/signal.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/telemetry.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/butterworth.hpp
     ## concepts
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/concepts/arithmetic.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/tlib/control/concepts/vector.hpp
@@ -53,6 +54,5 @@ PUBLIC
 
 if(TESTS_ON)
     add_subdirectory(tests)
-    add_subdirectory(analysis)
 endif()
 

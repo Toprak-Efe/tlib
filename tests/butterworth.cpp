@@ -7,7 +7,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <tlib/control/biquad.hpp>
-#include <tlib/control/butterworth.hpp>
+#include <tlib/control/filters/butterworth.hpp>
 
 using Catch::Matchers::WithinAbs;
 using Catch::Matchers::WithinRel;
