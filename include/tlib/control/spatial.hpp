@@ -201,7 +201,6 @@ public:
 
 private:
   Matrix6 mat_;
-
 }; // class SpatialOperator
 
 using Impedance = SpatialOperator<TwistTag, WrenchTag>;

@@ -12,6 +12,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_executable(tests)
 target_sources(tests
  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_calculus.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/test_flock.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/test_clamping.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/test_devices.cpp

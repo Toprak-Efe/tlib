@@ -1,7 +1,9 @@
 #pragma once
 
 #include <concepts>
+#include <tlib/control/concepts/arithmetic.hpp>
 #include <tlib/control/concepts/holdable.hpp>
+#include <tlib/control/filters/fir.hpp>
 #include <utility>
 
 class DifferentiatePolicy {
@@ -16,7 +18,7 @@ protected:
   DifferentiatePolicy() = default;
 }; // DifferentiatePolicy
 
-template <typename Policy, Holdable T>
+template <typename Policy, ScalarArithmetic T>
   requires std::derived_from<Policy, DifferentiatePolicy>
 class Differentiator {
 public:
@@ -26,91 +28,45 @@ public:
       : policy_(std::forward<Args>(args)...) {}
   void reset() { policy_.reset(); }
   T operator()(const T &x) { return policy_(x); }
-  T operator()(const T &x) const { return policy_(x); }
+  T operator()(const T &x) const {
+    return static_cast<const Policy>(policy_)(x);
+  }
 
 private:
   Policy policy_{};
 }; // Differentiator
 
-template <Holdable T>
-struct FirstDifferenceDifferentiatorPolicy : public DifferentiatePolicy {
+template <ScalarArithmetic T, double KernelScale, double... KernelCoefficients>
+  requires(KernelScale > 1e-3 || -1e-3 > KernelScale)
+class FIRDifferentiatorPolicy : public DifferentiatePolicy {
+  static constexpr std::size_t KernelSize = sizeof...(KernelCoefficients);
+
 public:
-  FirstDifferenceDifferentiatorPolicy() = default;
-
-  T operator()(const T &x) {
-    if (!init_) {
-      init_ = true;
-      x1_ = x;
-      return T{x.stamp()};
-    }
-
-    Timestamp t = x.stamp();
-    Timestamp t1 = x1_.stamp();
-    auto dt = to_seconds(t - t1);
-
-    T y = (x - x1_) / dt;
-    x1_ = x;
-    return y;
-  }
-
+  FIRDifferentiatorPolicy() = delete;
+  FIRDifferentiatorPolicy(double fs)
+      : DifferentiatePolicy(), fs_{fs},
+        filter_(std::array<double, KernelSize>({KernelCoefficients...})) {}
+  T operator()(const T &x) { return filter_(x) * fs_ / KernelScale; }
   T operator()(const T &x) const {
-    if (!init_) {
-      return T{x.stamp()};
-    }
-
-    Timestamp t = x.stamp();
-    Timestamp t1 = x1_.stamp();
-    auto dt = to_seconds(t - t1);
-
-    return (x - x1_) / dt;
+    return static_cast<const FIR<T, KernelSize>>(filter_)(x) * fs_ /
+           KernelScale;
   }
 
 private:
-  T x1_{};
-  bool init_{false};
-}; // FirstDifferenceDifferentiatorPolicy
+  double fs_;
+  FIR<T, KernelSize> filter_;
+}; // FIRDifferentiatorPolicy
 
-template <Holdable T>
+template <ScalarArithmetic T>
+using RickLyonsDifferentiator = Differentiator<
+    FIRDifferentiatorPolicy<T, 19.0 / 16.0, 3.0 / 16.0, -31.0 / 32.0, 0.0,
+                            31.0 / 32.0, -3.0 / 16.0>,
+    T>;
+
+template <ScalarArithmetic T>
+using CentralDifferenceDifferentiator =
+    Differentiator<FIRDifferentiatorPolicy<T, 2.0, 1.0, 0.0, -1.0>, T>;
+
+template <ScalarArithmetic T>
 using FirstDifferenceDifferentiator =
-    Differentiator<FirstDifferenceDifferentiatorPolicy<T>, T>;
-
-template <Holdable T>
-class CentralDifferenceDifferentiatorPolicy : public DifferentiatePolicy {
-public:
-  CentralDifferenceDifferentiatorPolicy() = default;
-  T operator()(const T &x) {
-    if (idx_ != 2) {
-      xn_[idx_++] = x;
-      return T{x.stamp()};
-    }
-
-    Timestamp t = x.stamp();
-    Timestamp t1 = xn_[0].stamp();
-    auto dt = to_seconds(t - t1);
-    T y = (x - xn_[0]) / dt;
-
-    xn_[0] = xn_[1];
-    xn_[1] = x;
-
-    return y;
-  }
-
-  T operator()(const T &x) const {
-    if (idx_ != 2) {
-      return T{x.stamp()};
-    }
-
-    Timestamp t = x.stamp();
-    Timestamp t1 = xn_[0].stamp();
-    auto dt = to_seconds(t - t1);
-    return (x - xn_[0]) / dt;
-  }
-
-private:
-  std::array<T, 2> xn_{};
-  std::size_t idx_{0};
-}; // CentralDifferenceDifferentiatorPolicy
-
-template <Holdable T>
-using CentralDifferentiator =
-    Differentiator<CentralDifferenceDifferentiatorPolicy<T>, T>;
+    Differentiator<FIRDifferentiatorPolicy<T, 1.0, 1.0, -1.0>, T>;
