@@ -1,64 +1,66 @@
 #pragma once
 
+#include "tlib/control/concepts/vector.hpp"
+#include <cmath>
 #include <concepts>
+#include <numeric>
 #include <stdexcept>
 #include <tlib/control/concepts/arithmetic.hpp>
 #include <tlib/control/spatial.hpp>
+#include <type_traits>
+#include <utility>
 
-template <typename T>
-  requires SelfArithmetic<T> && std::copy_constructible<T>
+struct T_ClampingPolicy {}; // struct T_ClampingPolicy
+
+template <typename P, typename T>
+concept IsClampingPolicy = requires(P policy, const T &x) {
+  { policy(x) } -> std::same_as<T>;
+  { policy.reset() } -> std::same_as<void>;
+  requires std::same_as<typename P::policy_tag, T_ClampingPolicy>;
+};
+
+template <typename Policy, typename T>
+  requires IsClampingPolicy<Policy, T>
 class Clamper {
 public:
-  Clamper() = delete;
-  Clamper(const T &min, const T &max) : min_{min}, max_{max} {
-    if (min > max) {
-      throw std::invalid_argument{
-          "Minimum clamp value must be smaller or equal to the maximum."};
-    }
-  }
-  T clamp(const T &val) const {
-    if (val > max_)
-      return max_;
-    if (val < min_)
-      return min_;
-    return val;
-  }
+  Clamper() = default;
+
+  template <typename... Args>
+  explicit Clamper(Args &&...args) : policy_(std::forward<Args>(args)...) {}
+
+  void reset() { policy_.reset(); }
+
+  T operator()(const T &x) { return policy_(x); }
+  T operator()(const T &x) const { return policy_(x); }
 
 private:
-  T min_;
-  T max_;
-}; // struct Clamper
+  Policy policy_{};
+};
 
-template <typename T> class Clamper<SpatialVector<T>> {
-public:
-  Clamper() = delete;
-  Clamper(const SpatialVector<T> &min, const SpatialVector<T> &max)
-      : min_{min}, max_{max} {
-    for (std::size_t i = 0; i < 6; i++) {
-      if (min.vec()[i] > max.vec()[i]) {
-        throw std::invalid_argument{"Minimum clamp values must be smaller or "
-                                    "equal to the maximum ones."};
-      }
+template <Vector T> struct HardClipPolicy {
+  using policy_tag = T_ClampingPolicy;
+  HardClipPolicy() = delete;
+  HardClipPolicy(const T &max) : max{max} {}
+
+  T operator()(const T &x) const {
+    if (max * max < x * x) {
+      return std::sqrt(max * max / x * x) * x;
     }
   }
 
-  SpatialVector<T> clamp(const SpatialVector<T> &val) const {
-    SpatialVector<T> out;
-    for (std::size_t i = 0; i < 6; i++) {
-      const auto s = val.vec().array()[i];
-      const auto max = max_.vec().array()[i];
-      const auto min = min_.vec().array()[i];
-      double out_v = s;
-      if (s > max)
-        out_v = max;
-      if (min > s)
-        out_v = min;
-      out.vec().array()[i] = out_v;
-    }
-    return out;
+  void reset() {}
+  T max{};
+}; // struct HardClipPolicy
+
+template <Vector T> struct TanhClipPolicy {
+  using policy_tag = T_ClampingPolicy;
+  TanhClipPolicy() = delete;
+  TanhClipPolicy(const T &max) : max2{max*max} {}
+
+  T operator()(const T &x) const {
+    
   }
 
-private:
-  SpatialVector<T> min_;
-  SpatialVector<T> max_;
-}; // struct Clamper
+  void reset() {}
+  T max2{};
+}; // struct TanhClipPolicy

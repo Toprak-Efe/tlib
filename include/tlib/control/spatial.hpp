@@ -10,9 +10,11 @@
 #include <eigen3/Eigen/src/Geometry/Quaternion.h>
 #include <tlib/control/concepts/holdable.hpp>
 
-struct WrenchTag {};       // Force (F, t)
-struct TwistTag {};        // Velocity (V, w)
-struct DisplacementTag {}; // Position (P, theta)
+struct T_SpatialVector {};
+struct WrenchTag : T_SpatialVector {};       // Force (F, t)
+struct AccelerationTag : T_SpatialVector {}; // Acceleration (V*, w*)
+struct TwistTag : T_SpatialVector {};        // Velocity (V, w)
+struct DisplacementTag : T_SpatialVector {}; // Position (P, theta)
 
 template <typename T> class SpatialVector {
 public:
@@ -69,6 +71,20 @@ public:
   auto angular() const { return data.template tail<3>(); }
   auto angular() { return data.template tail<3>(); }
 
+  Eigen::Quaterniond quat() const {
+    Vector3 ang = angular();
+    Scalar angle = ang.norm();
+    if (angle < 1e-8) {
+      return Eigen::Quaterniond::Identity();
+    }
+    return Eigen::Quaterniond(Eigen::AngleAxisd(angle, ang / angle));
+  }
+
+  void set_quat(const Eigen::Quaterniond &q) {
+    Eigen::AngleAxisd aa(q);
+    angular() = aa.angle() * aa.axis();
+  }
+
   static constexpr size_t CanonicalSize =
       sizeof(std::array<double, 6>) +
       sizeof(decltype(Timestamp{}.time_since_epoch().count()));
@@ -99,19 +115,43 @@ public:
 
   /* Arithmetic Operators */
   SpatialVector operator+(Scalar s) const {
-    return SpatialVector(data.array() + s, timestamp);
+    return SpatialVector(linear() + s, angular(), timestamp);
   }
   SpatialVector operator+(const SpatialVector &rhs) const {
-    return SpatialVector(data + rhs.vec(), std::max(timestamp, rhs.stamp()));
+    Vector3 lin_sum = this->linear() + rhs.linear();
+    const Eigen::Quaterniond ang_lhs = quat();
+    const Eigen::Quaterniond ang_rhs = rhs.quat();
+
+    Eigen::Quaterniond q_sum = ang_lhs * ang_rhs;
+
+    if (q_sum.w() < 0.0) {
+      q_sum.coeffs() *= -1.0;
+    }
+
+    Eigen::AngleAxisd aa_sum(q_sum);
+    Vector3 ang_sum = aa_sum.angle() * aa_sum.axis();
+
+    return SpatialVector(lin_sum, ang_sum, std::max(timestamp, rhs.stamp()));
   }
   SpatialVector operator-(Scalar s) const {
-    return SpatialVector(data.array() - s, timestamp);
+    return SpatialVector(linear() - s, angular(), timestamp);
   }
   SpatialVector operator-(const SpatialVector &rhs) const {
-    return SpatialVector(data - rhs.vec(), std::max(timestamp, rhs.stamp()));
+    Vector3 lin_diff = this->linear() - rhs.linear();
+    const Eigen::Quaterniond ang_lhs = quat();
+    const Eigen::Quaterniond ang_rhs = rhs.quat();
+    Eigen::Quaterniond q_diff = ang_lhs * ang_lhs.inverse();
+
+    if (q_diff.w() < 0.0) {
+      q_diff.coeffs() *= -1.0;
+    }
+
+    Eigen::AngleAxisd aa_diff(q_diff);
+    Vector3 ang_diff = aa_diff.angle() * aa_diff.axis();
+    return SpatialVector(lin_diff, ang_diff, std::max(timestamp, rhs.stamp()));
   }
   SpatialVector operator*(Scalar s) const {
-    return SpatialVector(data * s, timestamp);
+    return SpatialVector(linear() * s, angular(), timestamp);
   }
   friend SpatialVector operator*(Scalar s, const SpatialVector &v) {
     return v * s;
@@ -158,21 +198,39 @@ public:
     return *this;
   }
   SpatialVector &operator+=(Scalar s) {
-    data.array() += s;
+    linear() += s;
     return *this;
   }
-  SpatialVector &operator+=(const SpatialVector &v) {
-    data += v.vec();
-    timestamp = std::max(timestamp, v.stamp());
+  SpatialVector &operator+=(const SpatialVector &rhs) {
+    this->linear() += rhs.linear();
+    Eigen::Quaterniond q_sum = this->quat() * rhs.quat();
+
+    if (q_sum.w() < 0.0) {
+      q_sum.coeffs() *= -1.0;
+    }
+
+    Eigen::AngleAxisd aa_sum(q_sum);
+    this->angular() = aa_sum.angle() * aa_sum.axis();
+
+    timestamp = std::max(timestamp, rhs.stamp());
     return *this;
   }
   SpatialVector &operator-=(Scalar s) {
-    data.array() -= s;
+    linear() -= s;
     return *this;
   }
-  SpatialVector &operator-=(const SpatialVector &v) {
-    data -= v.vec();
-    timestamp = std::max(timestamp, v.stamp());
+  SpatialVector &operator-=(const SpatialVector &rhs) {
+    this->linear() -= rhs.linear();
+    Eigen::Quaterniond q_sum = this->quat() * rhs.quat().inverse();
+
+    if (q_sum.w() < 0.0) {
+      q_sum.coeffs() *= -1.0;
+    }
+
+    Eigen::AngleAxisd aa_sum(q_sum);
+    this->angular() = aa_sum.angle() * aa_sum.axis();
+
+    timestamp = std::max(timestamp, rhs.stamp());
     return *this;
   }
 
@@ -182,33 +240,9 @@ private:
 }; // class SpatialVector
 
 using Wrench = SpatialVector<WrenchTag>;
+using Acceleration = SpatialVector<AccelerationTag>;
 using Twist = SpatialVector<TwistTag>;
 using Displacement = SpatialVector<DisplacementTag>;
-
-template <typename FromTag, typename ToTag> class SpatialOperator {
-public:
-  using Scalar = double;
-  using Matrix6 = Eigen::Matrix<Scalar, 6, 6>;
-
-  SpatialOperator() : mat_(Matrix6::Identity()) {}
-  SpatialOperator(const Matrix6 &mat) : mat_{mat} {}
-  SpatialOperator(const SpatialOperator &oth) : mat_(oth.mat_) {}
-  SpatialOperator(SpatialOperator &&oth) : mat_(oth.mat_) {}
-
-  SpatialVector<ToTag> operator*(const SpatialVector<FromTag> &v) const {
-    return SpatialVector<ToTag>(mat_ * v.vec());
-  }
-
-private:
-  Matrix6 mat_;
-}; // class SpatialOperator
-
-using Impedance = SpatialOperator<TwistTag, WrenchTag>;
-using Admittance = SpatialOperator<WrenchTag, TwistTag>;
-using Adjoint = SpatialOperator<TwistTag, TwistTag>;
-using Coadjoint = SpatialOperator<WrenchTag, WrenchTag>;
-using Stiffness = SpatialOperator<DisplacementTag, WrenchTag>;
-using PositionGain = SpatialOperator<DisplacementTag, TwistTag>;
 
 template <typename... Signals>
   requires((sizeof...(Signals) > 0) && (Holdable<Signals> && ...))

@@ -29,7 +29,7 @@ public:
   void reset() { policy_.reset(); }
   T operator()(const T &x) { return policy_(x); }
   T operator()(const T &x) const {
-    return static_cast<const Policy>(policy_)(x);
+    return static_cast<const Policy &>(policy_)(x);
   }
 
 private:
